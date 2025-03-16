@@ -9,15 +9,14 @@ use App\{{FULL_NAMESPACE}}\Actions\{{FEATURE_NAME}}Action;
 use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
-use App\Traits\Data\HasPaginationMeta;
+use Stackrats\LaravelScaffoldFeature\Helpers\Pagination\BuildPaginationMeta\Actions\BuildPaginationMetaAction;
 
 class {{CLASS_NAME}} extends Controller
-{
-    use HasPaginationMeta;
-    
+{    
     public function __construct(
         private {{FEATURE_NAME}}Action ${{FEATURE_NAME_LCFIRST}}Action,
         private Build{{FEATURE_NAME}}RspAction $build{{FEATURE_NAME}}RspAction,
+        private BuildPaginationMetaAction $buildPaginationMetaAction,
     ) {}
 
     public function __invoke({{FEATURE_NAME}}Req $req): JsonResponse
@@ -29,7 +28,7 @@ class {{CLASS_NAME}} extends Controller
 
             return response()->json([
                 ...$rsp->toArray(),
-                ...$this->getPaginationMeta($data),
+                ...$this->buildPaginationMetaAction->handle($data),
             ]);
         } catch (\Throwable $th) {
             throw $th;

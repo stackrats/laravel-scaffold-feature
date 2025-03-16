@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Stackrats\LaravelScaffoldFeature\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Stackrats\LaravelScaffoldFeature\Services\FeatureScaffolder;
+use Stackrats\LaravelScaffoldFeature\Dtos\ScaffoldFeatureDto;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
@@ -28,344 +32,204 @@ class ScaffoldFeatureCommand extends Command
     protected $description = 'Scaffold new feature directories & files from prompts';
 
     /**
+     * @var FeatureScaffolder
+     */
+    protected $scaffolder;
+
+    /**
+     * Create a new command instance.
+     */
+    public function __construct(FeatureScaffolder $scaffolder)
+    {
+        parent::__construct();
+        $this->scaffolder = $scaffolder;
+    }
+
+    /**
      * Execute the console command.
      */
     public function handle()
     {
-        $config = config('laravel-scaffold-feature');
-
-        $rootDirs = $config['root_dirs'] ?? [
-            'Features/'         => 'App/Features/',
-            'Shared/Features/'  => 'App/Shared/Features/',
-            '/'                 => 'App/',
-        ];
-
-        $dirPattern = $config['validation']['dir_pattern'] ??
-            '/^(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*)(?:\/(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*))*$/';
-        $featurePattern = $config['validation']['feature_pattern'] ?? '/^[A-Z][a-zA-Z0-9]*$/';
-
+        $config = $this->getConfig();
+        
         // Prompt for the parent directory using select
-        $rootDir = select(
+        $rootDir = $this->promptForRootDirectory($config['root_dirs']);
+        
+        // Prompt for subdirectory
+        $subDir = $this->promptForSubdirectory($config['validation']['dir_pattern']);
+        
+        // Combine paths
+        $parentDir = $this->combineDirectoryPaths($rootDir, $subDir);
+        
+        // Validate the combined path
+        if (!$this->validateDirectoryPath($parentDir, $config['validation']['dir_pattern'])) {
+            $this->error('Directory path must be in PascalCase or start with underscore.');
+            return;
+        }
+        
+        // Prompt for feature name
+        $featureName = $this->promptForFeatureName($config['validation']['feature_pattern']);
+        
+        // Confirm directory creation
+        if (!$this->confirmFeatureCreation($parentDir, $featureName)) {
+            $this->info('Operation cancelled.');
+            return;
+        }
+        
+        // Prompt for API method and options
+        $apiMethod = $this->promptForApiMethod();
+        $additionalOption = $this->promptForAdditionalOptions($apiMethod);
+        
+        // Get available directories and prompt for selection
+        $availableDirectories = $this->scaffolder->getAvailableDirectories($apiMethod, $additionalOption);
+        $selectedDirectories = $this->promptForDirectories($availableDirectories);
+        
+        // Create DTO for scaffolding
+        $scaffoldDTO = new ScaffoldFeatureDto(
+            $parentDir,
+            $featureName,
+            $apiMethod,
+            $additionalOption,
+            $selectedDirectories
+        );
+        
+        try {
+            // Generate the feature
+            $this->scaffolder->scaffold($scaffoldDTO, $this);
+            $this->info("Feature {$parentDir}/{$featureName} scaffolded successfully!");
+        } catch (\Exception $e) {
+            $this->error("Error scaffolding feature: {$e->getMessage()}");
+        }
+    }
+    
+    /**
+     * Get configuration from config file.
+     */
+    protected function getConfig(): array
+    {
+        $config = config('laravel-scaffold-feature');
+        
+        return [
+            'root_dirs' => $config['root_dirs'] ?? [
+                'Features/'         => 'App/Features/',
+                'Shared/Features/'  => 'App/Shared/Features/',
+                '/'                 => 'App/',
+            ],
+            'validation' => [
+                'dir_pattern' => $config['validation']['dir_pattern'] ?? 
+                    '/^(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*)(?:\/(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*))*$/',
+                'feature_pattern' => $config['validation']['feature_pattern'] ?? '/^[A-Z][a-zA-Z0-9]*$/',
+            ],
+        ];
+    }
+    
+    /**
+     * Prompt for root directory.
+     */
+    protected function promptForRootDirectory(array $rootDirs): string
+    {
+        return select(
             label: 'Select the root directory:',
             options: $rootDirs,
             default: 'App/Features/',
         );
-
-        $subDir = text(
+    }
+    
+    /**
+     * Prompt for subdirectory.
+     */
+    protected function promptForSubdirectory(string $dirPattern): string
+    {
+        return text(
             label: 'Enter subdirectory (optional):',
             placeholder: 'E.g. KnowledgeBase',
             required: false,
-            validate: fn (string $value) => empty($value) || preg_match($dirPattern, $value) ? null : 'Subdirectory must be in PascalCase or start with underscore.'
+            validate: fn (string $value) => empty($value) || preg_match($dirPattern, $value) 
+                ? null 
+                : 'Subdirectory must be in PascalCase or start with underscore.'
         );
-
-        // Combine paths
-        $parentDir = rtrim($rootDir, '/') . ($subDir ? '/' . trim($subDir, '/') : '');
-
-        // Validate final path
-        if (! preg_match($dirPattern, trim($parentDir, '/'))) {
-            $this->error('Directory path must be in PascalCase or start with underscore.');
-
-            return;
-        }
-
-        // Prompt for the feature name
-        $featureName = text(
+    }
+    
+    /**
+     * Combine directory paths.
+     */
+    protected function combineDirectoryPaths(string $rootDir, ?string $subDir): string
+    {
+        return rtrim($rootDir, '/') . ($subDir ? '/' . trim($subDir, '/') : '');
+    }
+    
+    /**
+     * Validate directory path.
+     */
+    protected function validateDirectoryPath(string $path, string $pattern): bool
+    {
+        return (bool) preg_match($pattern, trim($path, '/'));
+    }
+    
+    /**
+     * Prompt for feature name.
+     */
+    protected function promptForFeatureName(string $featurePattern): string
+    {
+        return text(
             label: 'Enter the feature name:',
             placeholder: 'E.g. CreatePostSubmission',
             required: 'Feature name is required.',
-            validate: fn (string $value) => preg_match($featurePattern, $value) ? null : 'Feature name must be in PascalCase.'
+            validate: fn (string $value) => preg_match($featurePattern, $value) 
+                ? null 
+                : 'Feature name must be in PascalCase.'
         );
-
-        // Confirm directory creation
-        $confirmCreation = confirm(
+    }
+    
+    /**
+     * Confirm feature creation.
+     */
+    protected function confirmFeatureCreation(string $parentDir, string $featureName): bool
+    {
+        return confirm(
             label: "Create feature directory for {$parentDir}/{$featureName}?",
             default: true
         );
-
-        if (! $confirmCreation) {
-            $this->info('Operation cancelled.');
-
-            return;
-        }
-
-        // Prompt for API route method
-        $apiMethod = select(
+    }
+    
+    /**
+     * Prompt for API method.
+     */
+    protected function promptForApiMethod(): string
+    {
+        return select(
             label: 'Select the API route method:',
             options: ['post', 'get', 'put', 'delete'],
             default: 'post'
         );
-
-        $additionalOption = null;
+    }
+    
+    /**
+     * Prompt for additional options if needed.
+     */
+    protected function promptForAdditionalOptions(string $apiMethod): ?string
+    {
         if ($apiMethod === 'get') {
-            // Additional prompt for GET methods
-            $additionalOption = select(
+            return select(
                 label: 'Select the GET action return type:',
                 options: ['model', 'collection', 'paginate'],
                 default: 'model'
             );
         }
-
-        // Dynamically filter directories based on the API method and additional options
-        $availableDirectories = $this->getAvailableDirectories($apiMethod, $additionalOption);
-
-        // Prompt to select directories
-        $directories = multiselect(
+        
+        return null;
+    }
+    
+    /**
+     * Prompt for directories to include.
+     */
+    protected function promptForDirectories(array $availableDirectories): array
+    {
+        return multiselect(
             label: 'Select the directories to include for this feature:',
             options: $availableDirectories,
             default: $availableDirectories,
             required: 'You must select at least one directory.'
         );
-
-        // Base path
-        $basePath = app_path(($parentDir ? "/{$parentDir}" : '') . "/{$featureName}");
-
-        // Generate files for the selected directories
-        foreach ($directories as $directory) {
-            $this->generateFilesForDirectory($directory, $basePath, $parentDir, $featureName, $apiMethod, $additionalOption);
-        }
-
-        $this->info("Feature {$parentDir}/{$featureName} scaffolded successfully!");
-    }
-
-    /**
-     * Get available directories based on API method and additional options.
-     */
-    protected function getAvailableDirectories(string $apiMethod, ?string $additionalOption): array
-    {
-        // Customize available directories based on the API method
-        $directories = [
-            'post' => ['Actions', 'Controllers', 'Handlers', 'Data', 'Data/Requests', 'Data/Responses', 'Routes', 'Tests'],
-            'get' => ['Actions', 'Controllers', 'Data/Requests', 'Data/Responses', 'Routes', 'Tests'],
-            'put' => ['Actions', 'Controllers', 'Handlers', 'Data', 'Data/Requests', 'Data/Responses', 'Routes', 'Tests'],
-            'delete' => ['Actions', 'Controllers', 'Data/Requests', 'Routes', 'Tests'],
-        ];
-
-        // Return the filtered directories for the selected method
-        return $directories[$apiMethod] ?? [];
-    }
-
-    /**
-     * Generate files for a specific directory based on templates.
-     */
-    protected function generateFilesForDirectory(
-        string $directory,
-        string $basePath,
-        string $parentDir,
-        string $featureName,
-        string $apiMethod,
-        ?string $additionalOption
-    ): void {
-        // Define a configuration map for templates based on API method and directory
-        $templateConfig = [
-            'post' => [
-                'Actions' => [
-                    "{$featureName}Action.php" => 'action.stub',
-                    "Build{$featureName}RspAction.php" => 'build_rsp_action.stub',
-                ],
-                'Controllers' => [
-                    "{$featureName}Controller.php" => 'controller.stub',
-                ],
-                'Handlers' => [
-                    "{$featureName}Handler.php" => 'handler.stub',
-                ],
-                'Data' => [
-                    "{$featureName}ActionDto.php" => 'dto.stub',
-                ],
-                'Data/Requests' => [
-                    "{$featureName}Req.php" => 'req.stub',
-                ],
-                'Data/Responses' => [
-                    "{$featureName}Rsp.php" => 'rsp.stub',
-                    "{$featureName}Data.php" => 'rsp_data.stub',
-                ],
-                'Routes' => [
-                    'api.php' => 'routes.stub',
-                ],
-                'Tests' => [
-                    "{$featureName}ActionTest.php" => 'test.stub',
-                ],
-            ],
-            'get' => [
-                'Actions' => [
-                    "{$featureName}Action.php" => 'action.stub',
-                    "Build{$featureName}RspAction.php" => 'build_rsp_action.stub',
-                ],
-                'Controllers' => [
-                    "{$featureName}Controller.php" => 'controller.stub',
-                ],
-                'Data/Requests' => [
-                    "{$featureName}Req.php" => 'req.stub',
-                ],
-                'Data/Responses' => [
-                    "{$featureName}Rsp.php" => 'rsp.stub',
-                    "{$featureName}Data.php" => 'rsp_data.stub',
-                ],
-                'Routes' => [
-                    'api.php' => 'routes.stub',
-                ],
-                'Tests' => [
-                    "{$featureName}ActionTest.php" => 'test.stub',
-                ],
-            ],
-            'put' => [
-                'Actions' => [
-                    "{$featureName}Action.php" => 'action.stub',
-                    "Build{$featureName}RspAction.php" => 'build_rsp_action.stub',
-                ],
-                'Controllers' => [
-                    "{$featureName}Controller.php" => 'controller.stub',
-                ],
-                'Handlers' => [
-                    "{$featureName}Handler.php" => 'handler.stub',
-                ],
-                'Data' => [
-                    "{$featureName}ActionDto.php" => 'dto.stub',
-                ],
-                'Data/Requests' => [
-                    "{$featureName}Req.php" => 'req.stub',
-                ],
-                'Data/Responses' => [
-                    "{$featureName}Rsp.php" => 'rsp.stub',
-                    "{$featureName}Data.php" => 'rsp_data.stub',
-                ],
-                'Routes' => [
-                    'api.php' => 'routes.stub',
-                ],
-                'Tests' => [
-                    "{$featureName}ActionTest.php" => 'test.stub',
-                ],
-            ],
-            'delete' => [
-                'Actions' => [
-                    "{$featureName}Action.php" => 'action.stub',
-                ],
-                'Controllers' => [
-                    "{$featureName}Controller.php" => 'controller.stub',
-                ],
-                'Data/Requests' => [
-                    "{$featureName}Req.php" => 'req.stub',
-                ],
-                'Routes' => [
-                    'api.php' => 'routes.stub',
-                ],
-                'Tests' => [
-                    "{$featureName}ActionTest.php" => 'test.stub',
-                ],
-            ],
-        ];
-
-        $directories = [
-            'Actions',
-            'Controllers',
-            'Handlers',
-            'Data',
-            'Data/Requests',
-            'Data/Responses',
-            'Routes',
-            'Tests'
-        ];
-        $pathTemplate = ($apiMethod === 'get' && $additionalOption)
-            ? "{$apiMethod}/{$additionalOption}/%s"
-            : "{$apiMethod}/%s";
-
-        foreach ($directories as $dir) {
-            if (isset($templateConfig[$apiMethod][$dir])) {
-                $templateConfig[$apiMethod][$dir] = array_map(
-                    fn ($template) => sprintf($pathTemplate, $template),
-                    $templateConfig[$apiMethod][$dir]
-                );
-            }
-        }
-
-        // Get the template configuration for the current API method
-        $methodTemplates = $templateConfig[$apiMethod] ?? [];
-
-        // If the directory is not in the method's templates, return
-        if (! isset($methodTemplates[$directory])) {
-            return;
-        }
-
-        // Get the templates for the current directory
-        $templates = $methodTemplates[$directory];
-
-        $dirPath = "{$basePath}/{$directory}";
-        File::makeDirectory($dirPath, 0755, true);
-
-        foreach ($templates as $fileName => $templateFile) {
-            $this->createFileFromTemplate($dirPath, $fileName, $templateFile, $parentDir, $featureName, $directory);
-        }
-    }
-
-    /**
-     * Create a file from a template.
-     */
-    protected function createFileFromTemplate(
-        string $dirPath,
-        string $fileName,
-        string $templateFile,
-        string $parentDir,
-        string $featureName,
-        string $directory
-    ): void {
-        // Look for published templates first
-        $templatePath = resource_path('templates/vendor/laravel-scaffold-feature/' . $templateFile);
-
-        if (! File::exists($templatePath)) {
-            // Fallback to default template path in the package
-            $templatePath = __DIR__ . '/../../resources/templates/scaffold-feature/' . $templateFile;
-        }
-
-        if (! File::exists($templatePath)) {
-            $this->error("Template file {$templateFile} not found!");
-
-            return;
-        }
-
-        $content = File::get($templatePath);
-
-        // Trim any leading or trailing slashes from the parent directory
-        $parentDir = trim($parentDir, '/');
-
-        $parentNamespace = $parentDir ? str_replace('/', '\\', $parentDir) : null;
-
-        // Dynamically construct the full namespace with conditional slash
-        $fullNamespace = $parentNamespace
-            ? "{$parentNamespace}\\{$featureName}"
-            : $featureName;
-
-        // Replace placeholders in the template
-        $replacements = [
-            '{{NAMESPACE}}' => str_replace('/', '\\', 'App\\' . ($parentDir ? "{$parentDir}\\" : '') . "{$featureName}\\{$directory}"),
-            '{{PARENT_NAMESPACE}}' => $parentNamespace ? "{$parentNamespace}" : '',
-            '{{FULL_NAMESPACE}}' => $fullNamespace,
-            '{{CLASS_NAME}}' => $this->getClassName($fileName, $featureName),
-            '{{FEATURE_NAME}}' => $featureName,
-            '{{FEATURE_NAME_LCFIRST}}' => Str::lcfirst($featureName),
-            '{{FEATURE_NAME_LOWERCASE_KEBAB}}' => Str::kebab($featureName),
-        ];
-
-        $content = str_replace(array_keys($replacements), array_values($replacements), $content);
-
-        // Save the generated file
-        $filePath = "{$dirPath}/" . $this->getFileName($fileName, $featureName);
-        File::put($filePath, $content);
-
-        $this->info("Created: {$filePath}");
-    }
-
-    /**
-     * Get the class name for the file.
-     */
-    protected function getClassName(string $fileName, string $featureName): string
-    {
-        return str_replace('FileName', $featureName, pathinfo($fileName, PATHINFO_FILENAME));
-    }
-
-    /**
-     * Get the final file name.
-     */
-    protected function getFileName(string $fileName, string $featureName): string
-    {
-        return str_replace('FileName', $featureName, $fileName);
     }
 }
