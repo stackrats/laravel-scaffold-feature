@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use App\{{FULL_NAMESPACE}}\Data\{{FEATURE_NAME}}ActionDto;
+use App\{{FULL_NAMESPACE}}\Actions\{{FEATURE_NAME}}Action;
+use stdClass;
+use Illuminate\Support\Facades\DB;
+
+class {{CLASS_NAME}}
+{
+    public function __construct(
+        private {{FEATURE_NAME}}Action ${{FEATURE_NAME_LCFIRST}}Action
+    ) {}
+
+    public function handle(
+        {{FEATURE_NAME}}Req $req
+    ): stdClass
+    {
+        try {
+            DB::beginTransaction();
+
+            $dto = new {{FEATURE_NAME}}ActionDto(
+                id: $req->id,
+            );
+            $action = $this->{{FEATURE_NAME_LCFIRST}}Action->handle($dto);
+
+            DB::commit();
+
+            return $action;
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+}

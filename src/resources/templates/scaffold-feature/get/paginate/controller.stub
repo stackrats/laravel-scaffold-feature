@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Actions\Build{{FEATURE_NAME}}RspAction;
+use App\{{FULL_NAMESPACE}}\Actions\{{FEATURE_NAME}}Action;
+use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
+use App\Traits\Data\HasPaginationMeta;
+
+class {{CLASS_NAME}} extends Controller
+{
+    use HasPaginationMeta;
+    
+    public function __construct(
+        private {{FEATURE_NAME}}Action ${{FEATURE_NAME_LCFIRST}}Action,
+        private Build{{FEATURE_NAME}}RspAction $build{{FEATURE_NAME}}RspAction,
+    ) {}
+
+    public function __invoke({{FEATURE_NAME}}Req $req): JsonResponse
+    {
+
+        try {
+            $data = $this->{{FEATURE_NAME_LCFIRST}}Action->handle($req);
+            $rsp = $this->build{{FEATURE_NAME}}RspAction->handle($data);
+
+            return response()->json([
+                ...$rsp->toArray(),
+                ...$this->getPaginationMeta($data),
+            ]);
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+}

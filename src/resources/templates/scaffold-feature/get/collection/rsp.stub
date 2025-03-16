@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use Spatie\LaravelData\Data;
+
+class {{CLASS_NAME}} extends Data
+{
+    /**
+     * @param  {{FEATURE_NAME}}Data[]  $items
+     */
+    public function __construct(
+        public array $items,
+    ) {}
+}

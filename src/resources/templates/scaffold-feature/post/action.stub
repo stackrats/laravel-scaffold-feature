@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use App\{{FULL_NAMESPACE}}\Data\{{FEATURE_NAME}}ActionDto;
+use stdClass;
+
+class {{CLASS_NAME}}
+{
+    public function handle(
+        {{FEATURE_NAME}}ActionDto $dto
+    ): stdClass
+    {
+        $item = new stdClass;
+        $item->id = $dto->id;
+
+        return $item;
+    }
+}

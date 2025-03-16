@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use stdClass;
+
+class {{CLASS_NAME}}
+{
+    public function handle({{FEATURE_NAME}}Req $req): void
+    {
+        // Delete action
+    }
+}

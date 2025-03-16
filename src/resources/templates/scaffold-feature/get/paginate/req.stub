@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\Data\Shared\QueryOrderBy;
+use Spatie\LaravelData\Data;
+
+class {{CLASS_NAME}} extends Data
+{
+    public function __construct(
+        public ?string $filterSearch,
+        public int $page,
+        public int $perPage,
+        public QueryOrderBy $orderBy,
+    ) {}
+}

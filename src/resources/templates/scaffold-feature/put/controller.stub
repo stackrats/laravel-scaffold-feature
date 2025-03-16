@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Actions\Build{{FEATURE_NAME}}RspAction;
+use App\{{FULL_NAMESPACE}}\Handlers\{{FEATURE_NAME}}Handler;
+use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
+
+class {{CLASS_NAME}} extends Controller
+{
+    public function __construct(
+        private {{FEATURE_NAME}}Handler ${{FEATURE_NAME_LCFIRST}}Handler,
+        private Build{{FEATURE_NAME}}RspAction $build{{FEATURE_NAME}}RspAction,
+    ) {}
+
+    public function __invoke(
+        {{FEATURE_NAME}}Req $req
+    ): JsonResponse
+    {
+        try {
+            $data = $this->{{FEATURE_NAME_LCFIRST}}Handler->handle($req);
+            $rsp = $this->build{{FEATURE_NAME}}RspAction->handle($data);
+
+            return response()
+                ->json($rsp->toArray());
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "name": "stackrats/laravel-scaffold-feature",
+    "description": "Scaffold new feature directories & files from prompts",
+    "version": "1.0.0",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Stackrats\\LaravelScaffoldFeature\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Stackrats",
+            "email": "matt@stackrats.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0",
+        "illuminate/console": "^10.0|^11.0",
+        "laravel/prompts": "^0.3.5"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Stackrats\\LaravelScaffoldFeature\\ScaffoldFeatureServiceProvider"
+            ]
+        }
+    }
+}

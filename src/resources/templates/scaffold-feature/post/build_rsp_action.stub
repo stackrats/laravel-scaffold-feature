@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Data\Responses\{{FEATURE_NAME}}Rsp;
+use App\{{FULL_NAMESPACE}}\Data\Responses\{{FEATURE_NAME}}Data;
+use stdClass;
+
+class {{CLASS_NAME}}
+{
+    public function handle(
+        stdClass $data
+    ): {{FEATURE_NAME}}Rsp
+    {
+        $data = new {{FEATURE_NAME}}Data(
+            id: $data->id
+        );
+
+        return new {{FEATURE_NAME}}Rsp($data);
+    }
+}

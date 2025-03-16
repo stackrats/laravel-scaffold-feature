@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+use App\{{FULL_NAMESPACE}}\Controllers\{{FEATURE_NAME}}Controller;
+use Illuminate\Support\Facades\Route;
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('{{FEATURE_NAME_LOWERCASE_KEBAB}}', {{FEATURE_NAME}}Controller::class);
+});

@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use Illuminate\Pagination\LengthAwarePaginator;
+use stdClass;
+
+class {{CLASS_NAME}}
+{
+    public function handle({{FEATURE_NAME}}Req $req): LengthAwarePaginator
+    {
+        $item = new stdClass;
+        $item->id = $req->id;
+
+        return new LengthAwarePaginator(
+            collect([$item]),
+            1,
+            1,
+            1
+        );
+    }
+}

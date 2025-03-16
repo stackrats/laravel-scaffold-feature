@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{NAMESPACE}};
+
+use App\{{FULL_NAMESPACE}}\Data\Responses\{{FEATURE_NAME}}Rsp;
+use App\{{FULL_NAMESPACE}}\Data\Responses\{{FEATURE_NAME}}Data;
+use Illuminate\Database\Eloquent\Collection;
+
+class {{CLASS_NAME}}
+{
+    public function handle(
+        Collection $collection,
+    ): {{FEATURE_NAME}}Rsp
+    {
+        $dataArray = $collection
+            ->map(function ($data) {
+                return new {{FEATURE_NAME}}Data(
+                    id: $data->id
+                );
+            })
+                ->all();
+
+        return new {{FEATURE_NAME}}Rsp(
+            items: $dataArray
+        );
+    }
+}
