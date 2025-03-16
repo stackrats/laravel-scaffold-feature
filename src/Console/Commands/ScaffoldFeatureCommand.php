@@ -32,17 +32,17 @@ class ScaffoldFeatureCommand extends Command
      */
     public function handle()
     {
-        // Available root directories
-        $rootDirs = [
-            'Features/' => 'App/Features/',
-            'Shared/Features/' => 'App/Shared/Features/',
-            '/' => 'App/',
+        $config = config('laravel-scaffold-feature');
+
+        $rootDirs = $config['root_dirs'] ?? [
+            'Features/'         => 'App/Features/',
+            'Shared/Features/'  => 'App/Shared/Features/',
+            '/'                 => 'App/',
         ];
 
-        // Directory validation regex - PascalCase or start with underscore
-        $dirPattern = '/^(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*)(?:\/(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*))*$/';
-        // Feature name validation regex - PascalCase
-        $featurePattern = '/^[A-Z][a-zA-Z0-9]*$/';
+        $dirPattern = $config['validation']['dir_pattern'] ??
+            '/^(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*)(?:\/(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*))*$/';
+        $featurePattern = $config['validation']['feature_pattern'] ?? '/^[A-Z][a-zA-Z0-9]*$/';
 
         // Prompt for the parent directory using select
         $rootDir = select(
@@ -262,6 +262,7 @@ class ScaffoldFeatureCommand extends Command
             'Data/Requests',
             'Data/Responses',
             'Routes',
+            'Tests'
         ];
         $pathTemplate = ($apiMethod === 'get' && $additionalOption)
             ? "{$apiMethod}/{$additionalOption}/%s"
@@ -306,11 +307,12 @@ class ScaffoldFeatureCommand extends Command
         string $featureName,
         string $directory
     ): void {
-        $templatePath = resource_path('templates/vendor/laravel-scaffold-feature/'.$templateFile);
+        // Look for published templates first
+        $templatePath = resource_path('templates/vendor/laravel-scaffold-feature/' . $templateFile);
 
         if (! File::exists($templatePath)) {
-            // Fall back to default template path in the package
-            $templatePath = __DIR__ . '/../../../resources/templates/scaffold-feature/' . $templateFile;
+            // Fallback to default template path in the package
+            $templatePath = __DIR__ . '/../../resources/templates/scaffold-feature/' . $templateFile;
         }
 
         if (! File::exists($templatePath)) {
@@ -349,24 +351,6 @@ class ScaffoldFeatureCommand extends Command
         File::put($filePath, $content);
 
         $this->info("Created: {$filePath}");
-    }
-
-    /**
-     * Get the appropriate stub for the given file name and API configuration.
-     */
-    protected function getTemplateStub(
-        string $fileName,
-        ?string $apiMethod = null,
-        ?string $additionalOption = null
-    ): string {
-        // Map the stub location based on API method and additional option
-        $pathParts = array_filter([
-            $apiMethod,
-            $additionalOption,
-            $fileName,
-        ]);
-
-        return implode('/', $pathParts);
     }
 
     /**
