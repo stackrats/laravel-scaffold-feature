@@ -58,3 +58,14 @@ Feel free to modify them according to your project's requirements.
 ## License
 
 This package is open-sourced software licensed under the [MIT license](LICENSE.md).
+
+
+## Dev
+
+Format files
+
+    ./vendor/bin/pint
+
+Run tests
+
+    ./vendor/bin/pest

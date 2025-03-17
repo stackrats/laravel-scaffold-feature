@@ -1,7 +1,6 @@
 {
     "name": "stackrats/laravel-scaffold-feature",
     "description": "Scaffold new feature directories & files from prompts",
-    "version": "0.1.0",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
