@@ -7,6 +7,13 @@ namespace Stackrats\LaravelScaffoldFeatureTests\Facades;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Stackrats\LaravelScaffoldFeature\Facades\PaginationMeta;
 use Stackrats\LaravelScaffoldFeature\Helpers\Pagination\BuildPaginationMeta\Actions\BuildPaginationMetaAction;
+use Stackrats\LaravelScaffoldFeature\Services\PaginationMetaService;
+
+it('makes PaginationMeta facade available in the project', function () {
+    $instance = PaginationMeta::getFacadeRoot();
+
+    expect($instance)->toBeInstanceOf(PaginationMetaService::class);
+});
 
 it('builds pagination meta correctly', function () {
     // Create dummy data and a LengthAwarePaginator instance
