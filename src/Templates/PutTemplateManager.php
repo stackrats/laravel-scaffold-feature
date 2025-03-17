@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Templates;
 
@@ -12,7 +12,7 @@ class PutTemplateManager extends AbstractTemplateManager
      * @var string
      */
     public const API_METHOD = 'put';
-    
+
     /**
      * Get the template configuration.
      */

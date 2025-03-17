@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Templates;
 
@@ -30,20 +30,20 @@ abstract class AbstractTemplateManager implements TemplateManagerInterface
     public function getTemplatesForDirectory(string $directory): array
     {
         $config = $this->getTemplateConfig();
-        
+
         if (!isset($config[$directory])) {
             return [];
         }
-        
+
         $pathTemplate = $this->getPathTemplate();
         $templates = [];
-        
+
         foreach ($config[$directory] as $fileName => $templateFile) {
             // We need to keep template placeholders in the filenames intact
             // They will be replaced later in the createFileFromTemplate method
             $templates[$fileName] = sprintf($pathTemplate, $templateFile);
         }
-        
+
         return $templates;
     }
 }

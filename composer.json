@@ -1,7 +1,7 @@
 {
     "name": "stackrats/laravel-scaffold-feature",
     "description": "Scaffold new feature directories & files from prompts",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
@@ -29,7 +29,27 @@
         "laravel": {
             "providers": [
                 "Stackrats\\LaravelScaffoldFeature\\ScaffoldFeatureServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "PaginationMeta": "Stackrats\\LaravelScaffoldFeature\\Facades\\PaginationMeta"
+            }
+        }
+    },
+    "require-dev": {
+        "laravel/pint": "^1.21",
+        "pestphp/pest": "^3.7",
+        "orchestra/testbench": "^10.1"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Stackrats\\LaravelScaffoldFeature\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
         }
     }
 }

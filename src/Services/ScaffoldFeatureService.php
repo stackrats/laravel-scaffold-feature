@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Services;
 
@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 use Stackrats\LaravelScaffoldFeature\DTOs\ScaffoldFeatureDTO;
 use Stackrats\LaravelScaffoldFeature\Templates\TemplateManagerFactory;
 
-class FeatureScaffolder
+class ScaffoldFeatureService
 {
     /**
      * @var TemplateManagerFactory
@@ -20,8 +20,9 @@ class FeatureScaffolder
     /**
      * Create a new feature scaffolder instance.
      */
-    public function __construct(TemplateManagerFactory $templateManagerFactory)
-    {
+    public function __construct(
+        TemplateManagerFactory $templateManagerFactory
+    ) {
         $this->templateManagerFactory = $templateManagerFactory;
     }
 
@@ -45,13 +46,15 @@ class FeatureScaffolder
     /**
      * Scaffold a new feature.
      */
-    public function scaffold(ScaffoldFeatureDTO $dto, Command $command): void
-    {
+    public function scaffold(
+        ScaffoldFeatureDTO $dto,
+        Command $command
+    ): void {
         $basePath = app_path(($dto->parentDir ? "/{$dto->parentDir}" : '') . "/{$dto->featureName}");
-        
+
         // Get the template manager for the selected API method
         $templateManager = $this->templateManagerFactory->create($dto->apiMethod, $dto->additionalOption);
-        
+
         // Generate files for the selected directories
         foreach ($dto->directories as $directory) {
             $this->generateFilesForDirectory(
@@ -78,7 +81,7 @@ class FeatureScaffolder
     ): void {
         // Get templates for the current directory
         $templates = $templateManager->getTemplatesForDirectory($directory);
-        
+
         if (empty($templates)) {
             return;
         }
@@ -93,7 +96,7 @@ class FeatureScaffolder
                 'FEATURE_NAME_LCFIRST' => Str::lcfirst($featureName),
                 'FEATURE_NAME_LOWERCASE_KEBAB' => Str::kebab($featureName),
             ]);
-            
+
             $this->createFileFromTemplate(
                 $dirPath,
                 $processedFileName,
@@ -109,9 +112,11 @@ class FeatureScaffolder
     /**
      * Replace placeholders in a string with actual values.
      */
-    protected function replacePlaceholdersInString(string $input, array $replacements): string
-    {
-        $placeholders = array_map(function($key) {
+    protected function replacePlaceholdersInString(
+        string $input,
+        array $replacements
+    ): string {
+        $placeholders = array_map(function ($key) {
             return '{{' . $key . '}}';
         }, array_keys($replacements));
 
@@ -175,19 +180,23 @@ class FeatureScaffolder
         $command->info("Created: {$filePath}");
     }
 
-     /**
-     * Get the class name for the file.
-     */
-    protected function getClassName(string $fileName, string $featureName): string
-    {
+    /**
+    * Get the class name for the file.
+    */
+    protected function getClassName(
+        string $fileName,
+        string $featureName
+    ): string {
         return str_replace('FileName', $featureName, pathinfo($fileName, PATHINFO_FILENAME));
     }
 
     /**
      * Get the final file name.
      */
-    protected function getFileName(string $fileName, string $featureName): string
-    {
+    protected function getFileName(
+        string $fileName,
+        string $featureName
+    ): string {
         return str_replace('FileName', $featureName, $fileName);
     }
 }

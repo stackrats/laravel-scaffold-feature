@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Dtos;
 
@@ -12,35 +12,35 @@ class ScaffoldFeatureDto
      * @var string
      */
     public $parentDir;
-    
+
     /**
      * Feature name.
      *
      * @var string
      */
     public $featureName;
-    
+
     /**
      * API method.
      *
      * @var string
      */
     public $apiMethod;
-    
+
     /**
      * Additional option.
      *
      * @var string|null
      */
     public $additionalOption;
-    
+
     /**
      * Selected directories.
      *
      * @var array<string>
      */
     public $directories;
-    
+
     /**
      * Create a new DTO instance.
      */

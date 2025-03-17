@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Helpers\Pagination\BuildPaginationMeta\Data;
 
@@ -13,5 +13,6 @@ class PaginationMetaData extends Data
         public int $lastPage,
         public int $perPage,
         public int $totalItems,
-    ) {}
+    ) {
+    }
 }

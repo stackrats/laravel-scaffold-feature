@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
-use Stackrats\LaravelScaffoldFeature\Services\FeatureScaffolder;
+use Stackrats\LaravelScaffoldFeature\Services\ScaffoldFeatureService;
 use Stackrats\LaravelScaffoldFeature\Dtos\ScaffoldFeatureDto;
 
 use function Laravel\Prompts\confirm;
@@ -32,17 +31,18 @@ class ScaffoldFeatureCommand extends Command
     protected $description = 'Scaffold new feature directories & files from prompts';
 
     /**
-     * @var FeatureScaffolder
+     * @var ScaffoldFeatureService
      */
-    protected $scaffolder;
+    protected $scaffoldFeatureService;
 
     /**
      * Create a new command instance.
      */
-    public function __construct(FeatureScaffolder $scaffolder)
+    public function __construct(ScaffoldFeatureService $scaffoldFeatureService)
     {
         parent::__construct();
-        $this->scaffolder = $scaffolder;
+
+        $this->scaffoldFeatureService = $scaffoldFeatureService;
     }
 
     /**
@@ -51,39 +51,39 @@ class ScaffoldFeatureCommand extends Command
     public function handle()
     {
         $config = $this->getConfig();
-        
+
         // Prompt for the parent directory using select
         $rootDir = $this->promptForRootDirectory($config['root_dirs']);
-        
+
         // Prompt for subdirectory
         $subDir = $this->promptForSubdirectory($config['validation']['dir_pattern']);
-        
+
         // Combine paths
         $parentDir = $this->combineDirectoryPaths($rootDir, $subDir);
-        
+
         // Validate the combined path
         if (!$this->validateDirectoryPath($parentDir, $config['validation']['dir_pattern'])) {
             $this->error('Directory path must be in PascalCase or start with underscore.');
             return;
         }
-        
+
         // Prompt for feature name
         $featureName = $this->promptForFeatureName($config['validation']['feature_pattern']);
-        
+
         // Confirm directory creation
         if (!$this->confirmFeatureCreation($parentDir, $featureName)) {
             $this->info('Operation cancelled.');
             return;
         }
-        
+
         // Prompt for API method and options
         $apiMethod = $this->promptForApiMethod();
         $additionalOption = $this->promptForAdditionalOptions($apiMethod);
-        
+
         // Get available directories and prompt for selection
-        $availableDirectories = $this->scaffolder->getAvailableDirectories($apiMethod, $additionalOption);
+        $availableDirectories = $this->scaffoldFeatureService->getAvailableDirectories($apiMethod, $additionalOption);
         $selectedDirectories = $this->promptForDirectories($availableDirectories);
-        
+
         // Create DTO for scaffolding
         $scaffoldDTO = new ScaffoldFeatureDto(
             $parentDir,
@@ -92,23 +92,23 @@ class ScaffoldFeatureCommand extends Command
             $additionalOption,
             $selectedDirectories
         );
-        
+
         try {
             // Generate the feature
-            $this->scaffolder->scaffold($scaffoldDTO, $this);
+            $this->scaffoldFeatureService->scaffold($scaffoldDTO, $this);
             $this->info("Feature {$parentDir}/{$featureName} scaffolded successfully!");
         } catch (\Exception $e) {
             $this->error("Error scaffolding feature: {$e->getMessage()}");
         }
     }
-    
+
     /**
      * Get configuration from config file.
      */
     protected function getConfig(): array
     {
         $config = config('laravel-scaffold-feature');
-        
+
         return [
             'root_dirs' => $config['root_dirs'] ?? [
                 'Features/'         => 'App/Features/',
@@ -116,13 +116,13 @@ class ScaffoldFeatureCommand extends Command
                 '/'                 => 'App/',
             ],
             'validation' => [
-                'dir_pattern' => $config['validation']['dir_pattern'] ?? 
+                'dir_pattern' => $config['validation']['dir_pattern'] ??
                     '/^(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*)(?:\/(?:[A-Z][a-zA-Z0-9]*|_[A-Z][a-zA-Z0-9]*))*$/',
                 'feature_pattern' => $config['validation']['feature_pattern'] ?? '/^[A-Z][a-zA-Z0-9]*$/',
             ],
         ];
     }
-    
+
     /**
      * Prompt for root directory.
      */
@@ -134,7 +134,7 @@ class ScaffoldFeatureCommand extends Command
             default: 'App/Features/',
         );
     }
-    
+
     /**
      * Prompt for subdirectory.
      */
@@ -144,12 +144,12 @@ class ScaffoldFeatureCommand extends Command
             label: 'Enter subdirectory (optional):',
             placeholder: 'E.g. KnowledgeBase',
             required: false,
-            validate: fn (string $value) => empty($value) || preg_match($dirPattern, $value) 
-                ? null 
+            validate: fn (string $value) => empty($value) || preg_match($dirPattern, $value)
+                ? null
                 : 'Subdirectory must be in PascalCase or start with underscore.'
         );
     }
-    
+
     /**
      * Combine directory paths.
      */
@@ -157,7 +157,7 @@ class ScaffoldFeatureCommand extends Command
     {
         return rtrim($rootDir, '/') . ($subDir ? '/' . trim($subDir, '/') : '');
     }
-    
+
     /**
      * Validate directory path.
      */
@@ -165,7 +165,7 @@ class ScaffoldFeatureCommand extends Command
     {
         return (bool) preg_match($pattern, trim($path, '/'));
     }
-    
+
     /**
      * Prompt for feature name.
      */
@@ -175,12 +175,12 @@ class ScaffoldFeatureCommand extends Command
             label: 'Enter the feature name:',
             placeholder: 'E.g. CreatePostSubmission',
             required: 'Feature name is required.',
-            validate: fn (string $value) => preg_match($featurePattern, $value) 
-                ? null 
+            validate: fn (string $value) => preg_match($featurePattern, $value)
+                ? null
                 : 'Feature name must be in PascalCase.'
         );
     }
-    
+
     /**
      * Confirm feature creation.
      */
@@ -191,7 +191,7 @@ class ScaffoldFeatureCommand extends Command
             default: true
         );
     }
-    
+
     /**
      * Prompt for API method.
      */
@@ -203,7 +203,7 @@ class ScaffoldFeatureCommand extends Command
             default: 'post'
         );
     }
-    
+
     /**
      * Prompt for additional options if needed.
      */
@@ -216,10 +216,10 @@ class ScaffoldFeatureCommand extends Command
                 default: 'model'
             );
         }
-        
+
         return null;
     }
-    
+
     /**
      * Prompt for directories to include.
      */

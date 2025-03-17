@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Templates;
 
@@ -12,14 +12,14 @@ class GetTemplateManager extends AbstractTemplateManager
      * @var string
      */
     public const API_METHOD = 'get';
-    
+
     /**
      * The additional option.
      *
      * @var string|null
      */
     protected $additionalOption;
-    
+
     /**
      * Create a new template manager instance.
      */
@@ -27,7 +27,7 @@ class GetTemplateManager extends AbstractTemplateManager
     {
         $this->additionalOption = $additionalOption;
     }
-    
+
     /**
      * Get the path template for templates.
      */
@@ -37,7 +37,7 @@ class GetTemplateManager extends AbstractTemplateManager
             ? self::API_METHOD . '/' . $this->additionalOption . '/%s'
             : self::API_METHOD . '/%s';
     }
-    
+
     /**
      * Get the template configuration.
      */

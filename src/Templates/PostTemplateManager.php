@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Stackrats\LaravelScaffoldFeature\Templates;
 
@@ -12,7 +12,7 @@ class PostTemplateManager extends AbstractTemplateManager
      * @var string
      */
     public const API_METHOD = 'post';
-    
+
     /**
      * Get the template configuration.
      */
