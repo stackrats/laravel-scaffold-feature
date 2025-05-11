@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace {{NAMESPACE}};
 
-use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
+use App\{{FULL_NAMESPACE}}\Data\{{FEATURE_NAME}}Dro;
 use stdClass;
 
 class {{CLASS_NAME}}
 {
-    public function handle({{FEATURE_NAME}}Req $req): void
+    public function handle(
+        {{FEATURE_NAME}}Dto $dto
+    ): void
     {
         // Delete action
     }

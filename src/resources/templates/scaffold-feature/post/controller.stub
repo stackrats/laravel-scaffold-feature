@@ -21,14 +21,10 @@ class {{CLASS_NAME}} extends Controller
         {{FEATURE_NAME}}Req $req
     ): JsonResponse
     {
-        try {
-            $data = $this->{{FEATURE_NAME_LCFIRST}}Handler->handle($req);
-            $rsp = $this->build{{FEATURE_NAME}}RspAction->handle($data);
+        $data = $this->{{FEATURE_NAME_LCFIRST}}Handler->handle($req);
+        $rsp = $this->build{{FEATURE_NAME}}RspAction->handle($data);
 
-            return response()
-                ->json($rsp->toArray());
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        return response()
+            ->json($rsp->toArray());
     }
 }

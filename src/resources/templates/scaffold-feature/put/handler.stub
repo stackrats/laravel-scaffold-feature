@@ -20,20 +20,13 @@ class {{CLASS_NAME}}
         {{FEATURE_NAME}}Req $req
     ): stdClass
     {
-        try {
-            DB::beginTransaction();
-
+        return DB::transaction(function () use ($req) {
             $dto = new {{FEATURE_NAME}}ActionDto(
                 id: $req->id,
             );
             $action = $this->{{FEATURE_NAME_LCFIRST}}Action->handle($dto);
 
-            DB::commit();
-
             return $action;
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            throw $th;
-        }
+        });
     }
 }

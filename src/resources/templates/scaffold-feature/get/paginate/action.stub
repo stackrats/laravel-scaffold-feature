@@ -10,7 +10,9 @@ use stdClass;
 
 class {{CLASS_NAME}}
 {
-    public function handle({{FEATURE_NAME}}Req $req): LengthAwarePaginator
+    public function handle(
+        {{FEATURE_NAME}}Req $req
+    ): LengthAwarePaginator
     {
         $item = new stdClass;
         $item->id = $req->id;

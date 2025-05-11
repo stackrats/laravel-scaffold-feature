@@ -18,15 +18,13 @@ class {{CLASS_NAME}}
 
     public function handle(
         {{FEATURE_NAME}}Req $req
-    ): stdClass
+    ): void
     {
-        return DB::transaction(function () use ($req) {
+         DB::transaction(function () use ($req) {
             $dto = new {{FEATURE_NAME}}ActionDto(
                 id: $req->id,
             );
-            $action = $this->{{FEATURE_NAME_LCFIRST}}Action->handle($dto);
-
-            return $action;
+            $this->{{FEATURE_NAME_LCFIRST}}Action->handle($dto);
         });
     }
 }

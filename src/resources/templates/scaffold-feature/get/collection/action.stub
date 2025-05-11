@@ -10,7 +10,9 @@ use stdClass;
 
 class {{CLASS_NAME}}
 {
-    public function handle({{FEATURE_NAME}}Req $req): Collection
+    public function handle(
+        {{FEATURE_NAME}}Req $req
+    ): Collection
     {
         $item = new stdClass;
         $item->id = $req->id;

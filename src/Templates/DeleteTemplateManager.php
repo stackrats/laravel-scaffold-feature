@@ -25,6 +25,12 @@ class DeleteTemplateManager extends AbstractTemplateManager
             'Controllers' => [
                 "{{FEATURE_NAME}}Controller.php" => 'controller.stub',
             ],
+            'Handlers' => [
+                "{{FEATURE_NAME}}Handler.php" => 'handler.stub',
+            ],
+            'Data' => [
+                "{{FEATURE_NAME}}ActionDto.php" => 'dto.stub',
+            ],
             'Data/Requests' => [
                 "{{FEATURE_NAME}}Req.php" => 'req.stub',
             ],

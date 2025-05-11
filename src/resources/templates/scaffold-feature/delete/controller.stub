@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace {{NAMESPACE}};
 
-use App\{{FULL_NAMESPACE}}\Actions\Build{{FEATURE_NAME}}RspAction;
-use App\{{FULL_NAMESPACE}}\Actions\{{FEATURE_NAME}}Action;
 use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -14,23 +12,16 @@ use Illuminate\Support\Facades\DB;
 class {{CLASS_NAME}} extends Controller
 {
     public function __construct(
-        private {{FEATURE_NAME}}Action ${{FEATURE_NAME_LCFIRST}}Action
+        private {{FEATURE_NAME}}Handler ${{FEATURE_NAME_LCFIRST}}Handler
     ) {}
 
-    public function __invoke({{FEATURE_NAME}}Req $req): JsonResponse
+    public function __invoke(
+        {{FEATURE_NAME}}Req $req
+    ): JsonResponse
     {
-        DB::beginTransaction();
+        $this->{{FEATURE_NAME_LCFIRST}}Handler->handle($req);
 
-        try {
-            $this->{{FEATURE_NAME_LCFIRST}}Action->handle($req);
-
-            DB::commit();
-
-            return response()
-                ->json();
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            throw $th;
-        }
+        return response()
+            ->json();
     }
 }
