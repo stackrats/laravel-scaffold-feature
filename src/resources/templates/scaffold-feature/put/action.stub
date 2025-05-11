@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace {{NAMESPACE}};
 
-use App\{{FULL_NAMESPACE}}\Data\Requests\{{FEATURE_NAME}}Req;
 use App\{{FULL_NAMESPACE}}\Data\{{FEATURE_NAME}}ActionDto;
 use stdClass;
 
