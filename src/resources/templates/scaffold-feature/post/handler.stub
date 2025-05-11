@@ -24,9 +24,8 @@ class {{CLASS_NAME}}
             $dto = new {{FEATURE_NAME}}ActionDto(
                 id: $req->id,
             );
-            $action = $this->{{FEATURE_NAME_LCFIRST}}Action->handle($dto);
 
-            return $action;
+            return $this->{{FEATURE_NAME_LCFIRST}}Action->handle($dto);
         });
     }
 }
