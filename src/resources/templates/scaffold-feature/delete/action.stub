@@ -10,7 +10,7 @@ use stdClass;
 class {{CLASS_NAME}}
 {
     public function handle(
-        {{FEATURE_NAME}}Dto $dto
+        {{FEATURE_NAME}}ActionDto $dto
     ): void
     {
         // Delete action
