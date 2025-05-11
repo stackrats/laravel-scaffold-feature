@@ -36,7 +36,7 @@ class ScaffoldFeatureService
             'post' => ['Actions', 'Controllers', 'Handlers', 'Data', 'Data/Requests', 'Data/Responses', 'Routes', 'Tests'],
             'get' => ['Actions', 'Controllers', 'Data/Requests', 'Data/Responses', 'Routes', 'Tests'],
             'put' => ['Actions', 'Controllers', 'Handlers', 'Data', 'Data/Requests', 'Data/Responses', 'Routes', 'Tests'],
-            'delete' => ['Actions', 'Controllers', 'Data/Requests', 'Routes', 'Tests'],
+            'delete' => ['Actions', 'Controllers', 'Handlers', 'Data', 'Data/Requests', 'Routes', 'Tests'],
         ];
 
         // Return the filtered directories for the selected method
